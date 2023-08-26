@@ -5,7 +5,14 @@
 To install `uukaimyogen` to `$HOME/.cabal/bin/uukaimyogen`:
 
 ```bash
-cabal install --overwrite-policy=always
+# install ghc and cabal to build the command line tool
+make prepare
+
+# install the command line tool to $HOME/.local/bin
+make install
+
+# remove the command line tool
+make uninstall
 ```
 
 ## usages
