@@ -2,10 +2,14 @@
 
 ## install
 
-To install `uukaimyogen` to `$HOME/.cabal/bin/uukaimyogen`:
+Download a binary file from [releases](https://github.com/kurubushi/uukaimyo-generator/releases) or build with GHCup.
+
+## build
+
+Install [GHCup](https://www.haskell.org/ghcup/) and then build `uukaimyogen` and install it to `$HOME/.cabal/bin/uukaimyogen`:
 
 ```bash
-# install ghc and cabal to build the command line tool
+# install ghc and cabal with GHCup to build the command line tool
 make prepare
 
 # install the command line tool to $HOME/.local/bin
