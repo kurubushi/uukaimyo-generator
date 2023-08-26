@@ -1,4 +1,4 @@
-module Data.UUKaimyo (genKaimyoFromUUID, genUUKaimyo, genUUIDAndKaimyo) where
+module Data.UUKaimyo (Gender(..), genKaimyoFromUUID, genUUKaimyo, genUUIDAndKaimyo) where
 
 import           Control.Arrow ((&&&))
 import           Control.Lens  (each, over)
@@ -8,6 +8,11 @@ import qualified Data.UUID.V4  as UUIDv4
 
 -- | The Chunk based on the size of kanjis
 type Chunk = Int
+
+-- | The type of gender
+data Gender = Female
+            | Male
+  deriving (Show)
 
 -- | The list of 常用漢字
 kanjis :: [Char]
@@ -252,23 +257,23 @@ genChunks = stripZeros . reverse . unfoldr genChunk
 genKanjis :: Integral a => a -> String
 genKanjis = map (kanjis !!). genChunks
 
--- | Generate a kaimyo
-genKaimyo :: String -> String
-genKaimyo st = let (st1, st2) = splitAt 2 st
-               in st1 ++ "院" ++ st2 ++ "居士"
+-- | Generate a kayo
+genKaimyo :: Gender -> String -> String
+genKaimyo gender st = let (st1, st2) = splitAt 2 st
+                      in case gender of
+                           Male   -> st1 ++ "院" ++ st2 ++ "居士"
+                           Female -> st1 ++ "院" ++ st2 ++ "大姉"
 
 -- | Generate a random 常用漢字 string from a given UUID
-genKaimyoFromUUID :: UUID.UUID -> String
-genKaimyoFromUUID = genKaimyo . genKanjis . combine . over each toInteger . UUID.toWords
+genKaimyoFromUUID :: Gender -> UUID.UUID -> String
+genKaimyoFromUUID gender = genKaimyo gender . genKanjis . combine . over each toInteger . UUID.toWords
   where
     combine (w1, w2, w3, w4) = w1*(2^32)^3 + w2*(2^32)^2 + w3*(2^32)^1 + w4
 
 -- | Generate a random 常用漢字 string
-genUUKaimyo :: IO String
-genUUKaimyo = snd <$> genUUIDAndKaimyo
+genUUKaimyo :: Gender -> IO String
+genUUKaimyo gender = snd <$> genUUIDAndKaimyo gender
 
 -- | Generate an UUID and the related 常用漢字 string
-genUUIDAndKaimyo :: IO (String, String)
-genUUIDAndKaimyo = do
-  uuid <- UUIDv4.nextRandom
-  return (UUID.toString uuid, genKaimyoFromUUID uuid)
+genUUIDAndKaimyo :: Gender -> IO (String, String)
+genUUIDAndKaimyo gender = (UUID.toString &&& genKaimyoFromUUID gender) <$> UUIDv4.nextRandom

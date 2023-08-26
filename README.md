@@ -20,4 +20,7 @@ UUID: 3dfb5785-ba3a-4b68-88ff-72f623bebdb1
 
 $ uuidgen | uukaimyougen -c
 一紙院渡墨宝裸礁乳無日潤凡居士
+
+$ uukaimyogen -f
+悪道院塾街項詰誰習殉丁撃怒大姉
 ```

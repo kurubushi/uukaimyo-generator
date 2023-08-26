@@ -2,17 +2,22 @@ module Main where
 
 import           Control.Monad       (when)
 import qualified Data.UUID           as UUID
-import           Data.UUKaimyo       (genKaimyoFromUUID, genUUIDAndKaimyo)
-import           Options.Applicative (Parser, execParser, fullDesc, header,
-                                      help, helper, info, long, progDesc, short,
-                                      switch, (<**>))
+import           Data.UUKaimyo       (Gender (Female, Male), genKaimyoFromUUID,
+                                      genUUIDAndKaimyo)
+import           Options.Applicative (Parser, execParser, flag, fullDesc,
+                                      header, help, helper, info, long,
+                                      progDesc, short, switch, (<**>), (<|>))
 import           System.Exit         (die)
 
 -- | Options for the command
 data Options = Options
   { showUUID        :: Bool
   , convertFromUUID :: Bool
+  , gender          :: Gender
   } deriving (Show)
+
+defaultGender :: Gender
+defaultGender = Male
 
 -- | Parser for the command options
 options :: Parser Options
@@ -25,6 +30,14 @@ options = Options
       ( long "convert-from-uuid"
       <> short 'c'
       <> help "Convert from UUID" )
+  <*> ( (flag defaultGender Male
+         ( long "male"
+        <> short 'm'
+        <> help "Generate a kaimyo for males"))
+    <|> (flag defaultGender Female
+          (long "female"
+        <> short 'f'
+        <> help "Generate a kaimyo for females" )))
 
 -- | The main function
 main :: IO ()
@@ -38,8 +51,10 @@ main = do
                       uuid <- getLine
                       case UUID.fromString uuid of
                         Nothing   -> die "Invalid UUID"
-                        Just uuid -> return (UUID.toString uuid, genKaimyoFromUUID uuid)
+                        Just uuid -> return ( UUID.toString uuid
+                                            , genKaimyoFromUUID (gender opts) uuid
+                                            )
                     else do
-                      genUUIDAndKaimyo
+                      genUUIDAndKaimyo (gender opts)
   when (showUUID opts) $ putStrLn $ "UUID: " ++ uuid
   putStrLn kaimyo
