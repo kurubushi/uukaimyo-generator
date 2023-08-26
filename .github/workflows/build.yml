@@ -1,0 +1,48 @@
+name: build
+on:
+  push:
+  workflow_dispatch:
+jobs:
+  build:
+    strategy:
+      matrix:
+        os:
+          - ubuntu
+          - macos
+    name: build on ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/cache@v3
+        with:
+          path: |
+            ~/.cabal
+            /opt/homebrew
+          key: ${{ matrix.os }}-${{ hashFiles('cabal.project.freeze') }}
+          restore-keys: |
+            ${{ matrix.os }}-${{ hashFiles('cabal.project.freeze') }}
+            ${{ matrix.os }}-
+      - uses: haskell/actions/setup@v2
+        with:
+          ghc-version: 9.2.8
+          cabal-version: 3.6.2.0
+      - if: matrix.os == 'ubuntu'
+        run: |
+          make uukaimyogen
+          mkdir dist
+          tar czf dist/uukaimyogen-linux.tar.gz uukaimyogen
+      - if: matrix.os == 'macos'
+        run: |
+          make uukaimyogen
+          mkdir dist
+          tar czf dist/uukaimyogen-macos.tar.gz uukaimyogen
+      - uses: actions/upload-artifact@v3
+        with:
+          name: ${{ matrix.os }}
+          path: dist
+      - uses: softprops/action-gh-release@v1
+        if: startsWith(github.ref, 'refs/tags/')
+        with:
+          files: dist/*
