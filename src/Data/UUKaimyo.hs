@@ -1,9 +1,13 @@
 module Data.UUKaimyo (genKaimyoFromUUID, genUUKaimyo, genUUIDAndKaimyo) where
 
-import           Control.Lens (each, over)
-import           Data.List    (unfoldr)
-import qualified Data.UUID    as UUID
-import qualified Data.UUID.V4 as UUIDv4
+import           Control.Arrow ((&&&))
+import           Control.Lens  (each, over)
+import           Data.List     (unfoldr)
+import qualified Data.UUID     as UUID
+import qualified Data.UUID.V4  as UUIDv4
+
+-- | The Chunk based on the size of kanjis
+type Chunk = Int
 
 -- | The list of 常用漢字
 kanjis :: [Char]
@@ -223,21 +227,39 @@ kanjis = [ '亜','哀','挨','愛','曖','悪','握','圧','扱','宛'
          , '賄','脇','惑','枠','湾','腕'
          ]
 
+-- | The Base of numbers
+base :: Int
+base = length kanjis
+
+-- | Generate a next chunk and a next seed
+genChunk :: Integral a => a -> Maybe (Chunk, a)
+genChunk seed
+  | seed < 0     = Nothing
+  | seed == 0    = Just (0, -1)
+  | otherwise    = Just ( fromIntegral (toInteger seed `mod` toInteger base)
+                        , fromIntegral (toInteger seed `div` toInteger base)
+                        )
+
+-- | Strip zeros on the left side
+stripZeros :: [Chunk] -> [Chunk]
+stripZeros = uncurry (++) . (dropWhile (== 0) . init &&& return . last)
+
+-- | Generate a chunks based on size of kanjis
+genChunks :: Integral a => a -> [Chunk]
+genChunks = stripZeros . reverse . unfoldr genChunk
+
 -- | Generate a 常用漢字 string from a given integer
-genKaimyo :: Integral a => a -> String
-genKaimyo = format . toKanjis . genChunks
-  where
-    format xs = let (head, body) = splitAt 2 xs in head ++ "院" ++ body ++ "居士"
-    toKanjis = map ((kanjis !!) . fromIntegral)
-    genChunks = dropWhile (== 0) . reverse . unfoldr genChunk . toInteger
-    genChunk x
-      | x == 0    = Nothing
-      | otherwise = Just (x `mod` base, x `div` base)
-    base = toInteger $ length kanjis
+genKanjis :: Integral a => a -> String
+genKanjis = map (kanjis !!). genChunks
+
+-- | Generate a kaimyo
+genKaimyo :: String -> String
+genKaimyo st = let (st1, st2) = splitAt 2 st
+               in st1 ++ "院" ++ st2 ++ "居士"
 
 -- | Generate a random 常用漢字 string from a given UUID
 genKaimyoFromUUID :: UUID.UUID -> String
-genKaimyoFromUUID = genKaimyo . combine . over each toInteger . UUID.toWords
+genKaimyoFromUUID = genKaimyo . genKanjis . combine . over each toInteger . UUID.toWords
   where
     combine (w1, w2, w3, w4) = w1*(2^32)^3 + w2*(2^32)^2 + w3*(2^32)^1 + w4
 
