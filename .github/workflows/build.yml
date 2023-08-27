@@ -7,10 +7,14 @@ jobs:
     strategy:
       matrix:
         os:
-          - ubuntu
-          - macos
-    name: build on ${{ matrix.os }}
-    runs-on: ${{ matrix.os }}-latest
+          - name: linux
+            image: ubuntu-latest
+          - name: macos
+            image: macos-latest
+          - name: windows
+            image: windows-latest
+    name: build on ${{ matrix.os.name }}
+    runs-on: ${{ matrix.os.image }}
     permissions:
       contents: write
     steps:
@@ -20,27 +24,27 @@ jobs:
           path: |
             ~/.cabal
             /opt/homebrew
-          key: ${{ matrix.os }}-${{ hashFiles('cabal.project.freeze') }}
+          key: ${{ matrix.os.name }}-${{ hashFiles('cabal.project.freeze') }}-${{ github.sha }}
           restore-keys: |
-            ${{ matrix.os }}-${{ hashFiles('cabal.project.freeze') }}
-            ${{ matrix.os }}-
+            ${{ matrix.os.name }}-${{ hashFiles('cabal.project.freeze') }}-${{ github.sha }}
+            ${{ matrix.os.name }}-${{ hashFiles('cabal.project.freeze') }}-
+            ${{ matrix.os.name }}-
       - uses: haskell/actions/setup@v2
         with:
           ghc-version: 9.2.8
           cabal-version: 3.6.2.0
-      - if: matrix.os == 'ubuntu'
-        run: |
+      - run: |
           make uukaimyogen
-          mkdir dist
-          tar czf dist/uukaimyogen-linux.tar.gz uukaimyogen
-      - if: matrix.os == 'macos'
-        run: |
-          make uukaimyogen
-          mkdir dist
-          tar czf dist/uukaimyogen-macos.tar.gz uukaimyogen
+          mkdir -p dist
+          if [[ ${{ matrix.os.name }} = 'windows' ]]; then
+            tar czf dist/uukaimyogen-${{ matrix.os.name }}.tar.gz uukaimyogen.exe
+          else
+            tar czf dist/uukaimyogen-${{ matrix.os.name }}.tar.gz uukaimyogen
+          fi
+        shell: bash
       - uses: actions/upload-artifact@v3
         with:
-          name: ${{ matrix.os }}
+          name: ${{ matrix.os.name }}
           path: dist
       - uses: softprops/action-gh-release@v1
         if: startsWith(github.ref, 'refs/tags/')
