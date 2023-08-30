@@ -35,7 +35,10 @@ executable uukaimyogen
 
 test-suite uukaimyo-generator-test
   import:             library-depends
-  build-depends:      hspec >=2.11 && <3
+  build-depends:
+    , hspec               >=2.11 && <3
+    , uukaimyo-generator
+
   build-tool-depends: hspec-discover:hspec-discover
   type:               exitcode-stdio-1.0
   hs-source-dirs:     test
