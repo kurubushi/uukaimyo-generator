@@ -1,0 +1,36 @@
+name: format
+on:
+  push:
+  workflow_dispatch:
+jobs:
+  build:
+    name: Check format
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/cache@v3
+        with:
+          path: ~/.cabal
+          key: linux-${{ hashFiles('cabal.project.freeze') }}-${{ github.sha }}
+          restore-keys: |
+            ${{ matrix.os.name }}-${{ hashFiles('cabal.project.freeze') }}-${{ github.sha }}
+            ${{ matrix.os.name }}-${{ hashFiles('cabal.project.freeze') }}-
+            ${{ matrix.os.name }}-
+      - uses: haskell/actions/setup@v2
+        with:
+          ghc-version: 9.2.8
+          cabal-version: 3.6.2.0
+      - name: Install formatters
+        run: |
+          cabal install cabal-fmt stylish-haskell
+          echo "$HOME/.cabal/bin" >> $GITHUB_PATH
+      - name: Check format
+        run: |
+          make fmt
+          if [[ -n "$(git --no-pager diff)" ]]; then
+            echo "::error::not formatted"
+            echo "::group::diff"
+            git --no-pager diff
+            echo "::endgroup::"
+            exit 1
+          fi
