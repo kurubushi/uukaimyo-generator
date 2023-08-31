@@ -10,12 +10,13 @@ INSTALL_DATA = $(INSTALL) -Dm 644
 
 APP_HS_FILES = $(shell find app -type f -name "*.hs")
 SRC_HS_FILES = $(shell find src -type f -name "*.hs")
+TEST_HS_FILES = $(shell find test -type f -name "*.hs")
 GHC_VERSION = 9.2.8
 CABAL_VERSION = 3.6.2.0
 
 fmt:
 	cabal-fmt -i *.cabal
-	stylish-haskell -ri $(APP_HS_FILES) $(SRC_HS_FILES)
+	stylish-haskell -ri $(APP_HS_FILES) $(SRC_HS_FILES) $(TEST_HS_FILES)
 
 prepare:
 	ghcup install ghc $(GHC_VERSION)

@@ -1,8 +1,9 @@
 module Data.UUKaimyoSpec (spec) where
 
-import Test.Hspec (Spec, describe, it, shouldBe, shouldReturn)
 import qualified Data.UUID     as UUID
-import Data.UUKaimyo (Gender(Female, Male), genKaimyoFromUUID, genUUIDAndKaimyo)
+import           Data.UUKaimyo (Gender (Female, Male), genKaimyoFromUUID,
+                                genUUIDAndKaimyo)
+import           Test.Hspec    (Spec, describe, it, shouldBe, shouldReturn)
 
 spec :: Spec
 spec = do
@@ -47,4 +48,4 @@ spec = do
             let kaimyo' = genKaimyoFromUUID Male uuid
             return $ kaimyo == kaimyo'
       isRelated `shouldReturn` True
-    
+
