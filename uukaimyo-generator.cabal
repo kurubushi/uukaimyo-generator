@@ -3,27 +3,44 @@ name:               uukaimyo-generator
 version:            0.1.0.0
 author:             kurubushi
 maintainer:         krbshi@gmail.com
+license:            MIT
+license-file:       LICENSE
 extra-source-files:
-  LICENSE
+  CHANGELOG.md
   README.md
 
-library
-  exposed-modules:  Data.UUKaimyo
+common library-depends
   build-depends:
     , base  ^>=4.16.4.0
-    , lens  >=5.2      && <6
-    , uuid  >=1.3      && <2
+    , lens  >=5.2       && <6
+    , uuid  >=1.3       && <2
 
-  hs-source-dirs:   src
   default-language: Haskell2010
+
+library
+  import:          library-depends
+  exposed-modules: Data.UUKaimyo
+  hs-source-dirs:  src
 
 executable uukaimyogen
   main-is:          Main.hs
   build-depends:
     , base                  ^>=4.16.4.0
     , optparse-applicative  ^>=0.18.1
-    , uuid                  >=1.3      && <2
+    , uuid                  >=1.3       && <2
     , uukaimyo-generator
 
   hs-source-dirs:   app
   default-language: Haskell2010
+
+test-suite uukaimyo-generator-test
+  import:             library-depends
+  build-depends:
+    , hspec               >=2.11 && <3
+    , uukaimyo-generator
+
+  build-tool-depends: hspec-discover:hspec-discover
+  type:               exitcode-stdio-1.0
+  hs-source-dirs:     test
+  main-is:            Spec.hs
+  other-modules:      Data.UUKaimyoSpec

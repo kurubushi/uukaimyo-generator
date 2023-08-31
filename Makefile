@@ -1,4 +1,4 @@
-.PHONY: fmt prepare all install uninstall clean
+.PHONY: fmt prepare all install uninstall clean check
 
 prefix = $(HOME)/.local
 exec_prefix = $(prefix)
@@ -42,3 +42,6 @@ uninstall:
 
 clean:
 	rm -f uukaimyogen
+
+check:
+	cabal test
